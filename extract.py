@@ -102,6 +102,7 @@ x=[]
 y=[]
 z=[]
 atom_name = []
+QM_energy = []
 #n_atoms = 19
 coords = {}
 log_file = sys.argv[1]
@@ -130,6 +131,8 @@ with open(log_file) as input:
 						switch = 0
 						count = 0 
 						count2 = 0
+				if d[0] == "SCF" and d[1] == "Done":
+					QM_energy.append(int(d[5]) * 627.503) 
 
 #print atom_name
 n_frames = len(x) / n_atoms
@@ -170,7 +173,9 @@ for i in range(0,len(x)):
 		step_count += 1
 		nf_coords.write("%4d\n" % (n_atoms))
 		nf_coords.write("step %4d\n" % (step_count))
-	nf_coords.write("%4s  %10.6f  %10.6f  %10.6f \n" % (atom_name[i], x[i], y[i], z[i])) 
+		nf_coords.write("step %4d\n" % (step_count))
+#	nf_coords.write("%4s  %10.6f  %10.6f  %10.6f \n" % (atom_name[i], x[i], y[i], z[i])) 
+	nf_coords.write("%4s  %10.6f  %10.6f  %10.6f %+100.100f \n" % (atom_name[i], x[i], y[i], z[i], QM_energy[i])) 
 nf_coords.close()
 
 print "frames:", len(x)/n_atoms
