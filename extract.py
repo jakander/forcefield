@@ -75,8 +75,8 @@ def computePotentialEnergy(coords, names):
 			dist_vec = coords[atom1,:]-coords[atom2,:]
 			dist2 = np.dot(dist_vec,dist_vec)
 			dist = math.sqrt(dist2)
-	#		if names[atom1] == "Cu":
-	#			if names[atom2] == "O":
+	#		if c == 1 :
+	#			if c == 2:
 	#				print dist 
 			#arithemtic mean for sigma
 			sigma = (atom_sigma[atom1] + atom_sigma[atom2]) / 2.0
@@ -96,6 +96,7 @@ def computePotentialEnergy(coords, names):
 switch=0
 count=0
 count2=0
+testcount=0
 c=[]
 a=[]
 x=[]
@@ -113,26 +114,27 @@ with open(log_file) as input:
 			if d[0] == "NAtoms=":
 				n_atoms = int(d[1])
 			if d[0]=="Optimization" and d[1]=="completed.": 
-				switch += 1 
+				switch += 1
 			if switch == 1:
+				if d[0]=="SCF" and d[1]=="Done:" and d[2]=="E(UB3LYP)" and d[3]=="=":
+				#	print d[4]
+					QM_energy.append(float(d[4]) * 627.503) 
 				if d[0]=="Standard" and d[1]=="orientation:":
 					count += 1
 				if count==1:
 					count2 += 1
 					if count2 > 3 and count2 < n_atoms + 4:
-						#print d[0] 
+					#	print d[0] 
 						c.append(int(d[0]))
 						a.append(int(d[1]))
 						atom_name.append(atomNumber2ElementName(int(d[1])))
 						x.append(float(d[3]))
 						y.append(float(d[4]))
 						z.append(float(d[5]))
-					if count2 == n_atoms + 4:
+					if count2 == n_atoms + 70:
 						switch = 0
 						count = 0 
 						count2 = 0
-				if d[0] == "SCF" and d[1] == "Done":
-					QM_energy.append(int(d[5]) * 627.503) 
 
 #print atom_name
 n_frames = len(x) / n_atoms
@@ -157,12 +159,12 @@ for frame in range(n_frames):
 #for frame in range(1):
 	energy = computePotentialEnergy(xyz[frame,:,:],atom_name[0:n_atoms])
 	energy_list.append(energy)
-	print frame+1, energy
+#	print frame+1, energy
 
-plt.plot(energy_list, "bo")
-plt.ylabel('Kcal/mol')
-plt.xlabel('Frames')
-plt.show()
+#plt.plot(energy_list, "bo")
+#plt.ylabel('Kcal/mol')
+#plt.xlabel('Frames')
+#plt.show()
 
 
 # print coordinates
@@ -173,10 +175,9 @@ for i in range(0,len(x)):
 		step_count += 1
 		nf_coords.write("%4d\n" % (n_atoms))
 		nf_coords.write("step %4d\n" % (step_count))
-		nf_coords.write("step %4d\n" % (step_count))
-#	nf_coords.write("%4s  %10.6f  %10.6f  %10.6f \n" % (atom_name[i], x[i], y[i], z[i])) 
-	nf_coords.write("%4s  %10.6f  %10.6f  %10.6f %+100.100f \n" % (atom_name[i], x[i], y[i], z[i], QM_energy[i])) 
+	nf_coords.write("%4s  %10.6f  %10.6f  %10.6f \n" % (atom_name[i], x[i], y[i], z[i])) 
+#	nf_coords.write("%4s  %10.6f  %10.6f  %10.6f %+20.20f \n" % (atom_name[i], x[i], y[i], z[i], QM_energy[i])) 
 nf_coords.close()
 
-print "frames:", len(x)/n_atoms
+#print "frames:", len(x)/n_atoms
 
