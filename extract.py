@@ -97,8 +97,8 @@ switch=0
 count=0
 count2=0
 testcount=0
-c=[]
-a=[]
+#atom_number refers to the order of the atoms. Thus if copper is always the first atom, it has a atom_number of 1.
+atom_number = []
 x=[]
 y=[]
 z=[]
@@ -125,8 +125,7 @@ with open(log_file) as input:
 					count2 += 1
 					if count2 > 3 and count2 < n_atoms + 4:
 					#	print d[0] 
-						c.append(int(d[0]))
-						a.append(int(d[1]))
+						atom_number.append(int(d[0]))
 						atom_name.append(atomNumber2ElementName(int(d[1])))
 						x.append(float(d[3]))
 						y.append(float(d[4]))
@@ -156,27 +155,42 @@ for frame in range(n_frames):
 
 energy_list = []
 for frame in range(n_frames):
-#for frame in range(1):
 	energy = computePotentialEnergy(xyz[frame,:,:],atom_name[0:n_atoms])
 	energy_list.append(energy)
-#	print frame+1, energy
 
-#plt.plot(energy_list, "bo")
-#plt.ylabel('Kcal/mol')
-#plt.xlabel('Frames')
-#plt.show()
+#zero out the relative potential energy
+first_element_in_ff_pe = energy_list[0]
+for i in range(len(energy_list)):
+	energy_list[i] -= first_element_in_ff_pe
+
+#zero out the relative qm energy
+first_element_in_qm_energy = QM_energy[0]
+for i in range(len(QM_energy)):
+	QM_energy[i] -= first_element_in_qm_energy
+
+plt.plot(energy_list, "bo")
+plt.plot(QM_energy, "ro")
+plt.ylabel('Kcal/mol')
+plt.xlabel('Frames')
+plt.show()
 
 
 # print coordinates
 nf_coords = open("coords.xyz", "w")
 step_count = 0
 for i in range(0,len(x)):
+#for i in range(0,len(x)) and l in range(0,n_frames):
 	if i%n_atoms == 0:
+#	if i%n_atoms%l == 0:
 		step_count += 1
 		nf_coords.write("%4d\n" % (n_atoms))
 		nf_coords.write("step %4d\n" % (step_count))
-	nf_coords.write("%4s  %10.6f  %10.6f  %10.6f \n" % (atom_name[i], x[i], y[i], z[i])) 
+	#	nf_coords.write("step %4d %+20.20f \n" % (step_count, QM_energy[l]))
+	nf_coords.write("%4i %4s  %10.6f  %10.6f  %10.6f \n" % (atom_number[i], atom_name[i], x[i], y[i], z[i])) 
 #	nf_coords.write("%4s  %10.6f  %10.6f  %10.6f %+20.20f \n" % (atom_name[i], x[i], y[i], z[i], QM_energy[i])) 
+for l in range(0,n_frames):
+	if l == 0:
+		nf_coords.write("%+15.15f \n" % (QM_energy[l]))
 nf_coords.close()
 
 #print "frames:", len(x)/n_atoms
