@@ -23,8 +23,9 @@ def atomNumber2ElementName(atom_number):
 
 	return element_name
 
-def computePotentialEnergy(coords, names):
-
+def computePotentialEnergy(coords, names, cu_o_atom_numbers, frame):
+	
+	thresh = 0.0001
 	dist2_cut = 1.2 * 1.2
 	cu_charge = 2.0 * conv_factor
 	o_charge = -0.84 * conv_factor
@@ -67,17 +68,24 @@ def computePotentialEnergy(coords, names):
 		elif names[atom] == "Cu":
 			atom_charge[atom] = cu_charge
 
-	#print 'copper sigma:', atom_sigma[0], 'epsilon:', atom_epsilon[0]
 	energy = 0
+	cu_o_dist = 0
 	for atom1 in range(n_atoms-1):
 
 		for atom2 in range(atom1+1, n_atoms):
 			dist_vec = coords[atom1,:]-coords[atom2,:]
 			dist2 = np.dot(dist_vec,dist_vec)
 			dist = math.sqrt(dist2)
-	#		if c == 1 :
-	#			if c == 2:
-	#				print dist 
+			if frame == 0:
+				if  (names[atom1] == "Cu" and names[atom2] == "O") or (names[atom1] == "O" and names[atom2] == "Cu"):
+					if abs(dist-0.1) < thresh :
+						cu_o_atom_numbers[0] = atom1
+						cu_o_atom_numbers[1] = atom2
+						cu_o_dist = dist
+						print cu_o_dist
+			elif atom1 == cu_o_atom_numbers[0] and atom2 == cu_o_atom_numbers[1]:
+				cu_o_dist = dist
+			
 			#arithemtic mean for sigma
 			sigma = (atom_sigma[atom1] + atom_sigma[atom2]) / 2.0
 			#geometric mean for epsilon 
@@ -90,7 +98,7 @@ def computePotentialEnergy(coords, names):
 				coul_energy = atom_charge[atom1] * atom_charge[atom2] / dist
 				energy += float(coul_energy)
 	
-	return energy
+	return energy, cu_o_dist
 		
 
 switch=0
@@ -155,7 +163,7 @@ for frame in range(n_frames):
 
 energy_list = []
 for frame in range(n_frames):
-	energy = computePotentialEnergy(xyz[frame,:,:],atom_name[0:n_atoms])
+	energy = computePotentialEnergy(xyz[frame,:,:], atom_name[0:n_atoms])
 	energy_list.append(energy)
 
 #zero out the relative potential energy
