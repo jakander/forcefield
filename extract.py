@@ -26,14 +26,18 @@ def atomNumber2ElementName(atom_number):
 switch = 0
 count = 0 
 count2 = 0
+#initial_parameters is used to identify where the "Scan" term is being found to help identify which oxygen is the one being used for the scan
 initial_parameters = 0
 #atom_number refers to the order of the atoms. Thus if copper is always the first atom, it has a atom_number of 1.
 atom_number = []
+#x, y, and z refer to the cartesian coordinate values for all of the atoms at each given frame
 x = []
 y = []
 z = []
 atom_name = []
+#QM_energy is the quantum mechanically computed for a given frame 
 QM_energy = []
+#cu_o_bond_dist is the coordination distance between copper and the oxygen being incrementally moved closer to the copper
 cu_o_bond_dist = []
 #n_atoms = 19
 coords = {}
@@ -42,14 +46,28 @@ with open(log_file) as input:
 	for line in input: 
 		d=line.split()
 		if len(d)>1:
+			#finding the "Scan" term in the log file
 			if d[0] == "!" and d[1] == "Initial" and d[2] == "Parameters":
 				initial_parameters += 1
+			#finding which R is assigned for the copper-oxygen bond distance
 			if initial_parameters == 1:
 				if d[0] == "!" and d[1] == "R1" and d[4] == "Scan":
 					important_oxygen_name = d[1]
 					important_oxygen_definition = d[2]
-					print important_oxygen_name
-					print important_oxygen_definition
+				elif d[0] == "!" and d[1] == "R2" and d[4] == "Scan":
+					important_oxygen_name = d[1]
+					important_oxygen_definition = d[2]
+				elif d[0] == "!" and d[1] == "R3" and d[4] == "Scan":
+					important_oxygen_name = d[1]
+					important_oxygen_definition = d[2]
+				elif d[0] == "!" and d[1] == "R4" and d[4] == "Scan":
+					important_oxygen_name = d[1]
+					important_oxygen_definition = d[2]
+				elif d[0] == "!" and d[1] == "R5" and d[4] == "Scan":
+					important_oxygen_name = d[1]
+					important_oxygen_definition = d[2]
+					#print important_oxygen_name
+					#print important_oxygen_definition
 			if d[0] == "NAtoms=":
 				n_atoms = int(d[1])
 			if d[0]=="Optimization" and d[1]=="completed.": 
