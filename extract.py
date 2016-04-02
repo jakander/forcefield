@@ -4,7 +4,9 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
+#conv_factor: changes charges in subroutine to charges used in AMBER force fields. Gromacs and others use 18.22615. 
 conv_factor = 18.2223 
+
 
 def atomNumber2ElementName(atom_number):
 
@@ -26,21 +28,28 @@ def atomNumber2ElementName(atom_number):
 switch = 0
 count = 0 
 count2 = 0
+
 #initial_parameters is used to identify where the "Scan" term is being found to help identify which oxygen is the one being used for the scan
 initial_parameters = 0
+
+
 #atom_number refers to the order of the atoms. Thus if copper is always the first atom, it has a atom_number of 1.
 atom_number = []
+
 #x, y, and z refer to the cartesian coordinate values for all of the atoms at each given frame
 x = []
 y = []
 z = []
 atom_name = []
+
 #QM_energy is the quantum mechanically computed for a given frame 
 QM_energy = []
+
 #cu_o_bond_dist is the coordination distance between copper and the oxygen being incrementally moved closer to the copper
 cu_o_bond_dist = []
-#n_atoms = 19
+
 coords = {}
+#sys.argv[1] is the script extract.py
 log_file = sys.argv[1]
 with open(log_file) as input:
 	for line in input: 
@@ -95,7 +104,6 @@ with open(log_file) as input:
 						count = 0 
 						count2 = 0
 
-#print atom_name
 n_frames = len(x) / n_atoms
 n_frames = n_frames - 1
 
@@ -107,8 +115,8 @@ def computePotentialEnergy(coords, names):
 	o_charge = -0.84 * conv_factor
 	h_charge = 0.42 * conv_factor
 
-	#sigma in angstrom
-	#epsilon in kcal/mol
+	#sigma is in units of angstroms
+	#epsilon in units of kcal/mol
 	cu_sigma = 2.066 / (2.) ** (1. / 6.)
 	o_sigma = 3.090
 	cu_epsilon = 0.0427
@@ -153,7 +161,7 @@ def computePotentialEnergy(coords, names):
 			dist2 = np.dot(dist_vec,dist_vec)
 			dist = math.sqrt(dist2)
 			#arithemtic mean for sigma
-			sigma = (atom_sigma[atom1] + atom_sigma[atom2]) / 2.0
+			sigma = (atom_sigma[atom1] + atom_sigma[atom2]) / 2.0 
 			#geometric mean for epsilon 
 			epsilon = (atom_epsilon[atom1] * atom_epsilon[atom2]) ** 0.5
 			LJ = 4.0 * epsilon * ((sigma / dist) ** 12.0 - (sigma / dist) ** 6.0)
@@ -181,9 +189,7 @@ for frame in range(n_frames):
 		xyz[frame,atom,2] = z[line_count]
 		line_count += 1
 
-print cu_o_bond_dist[0:25]
-
-
+#print cu_o_bond_dist[0:25]
 
 
 energy_list = []
@@ -192,10 +198,6 @@ for frame in range(n_frames):
 	energy_list.append(energy)
 
 
-#get the demensions correct for x-axis
-#first_element_in_bond_dist = cu_o_bond_dist[0]
-#for i in range(len(cu_o_bond_dist)):
-#	cu_o_bond_dist -= first_element_in_bond_dist
 
 #zero out the relative potential energy
 first_element_in_ff_pe = energy_list[0]
@@ -207,17 +209,21 @@ first_element_in_qm_energy = QM_energy[0]
 for i in range(len(QM_energy)):
 	QM_energy[i] -= first_element_in_qm_energy
 
+
+
 plt.plot(cu_o_bond_dist[0:25], energy_list, "bo")
-plt.plot(cu_o_bond_dist[0:25], QM_energy, "ro")
-#plt.plot(energy_list, "bo")
-#plt.plot(QM_energy, "ro")
-plt.ylabel('Relative Energy (Kcal/mol)')
-plt.xlabel('Copper-Oxygen Coordination Distance (Angstroms)')
+plt.grid(b=True, which='major', axis='both', color='#808080', linestyle='--')
+plt.plot(cu_o_bond_dist[0:25], QM_energy, "r^")
+plt.ylabel('Energy (kcal/mol)')
+plt.xlabel('Copper-Oxygen Distance ($\AA$)')
 plt.legend(['LJ + C', 'QM'], fontsize='10', bbox_to_anchor=(.85, 0.905, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+plt.xlim((0,4))
+plt.axhline(y = 0, color = "k")
+plt.title(r'Copper-6 Equatorial Water Coordination Potential Energy Scan', size='14')
 plt.show()
 
 
-# print coordinates
+# print coordinates to a new file 
 nf_coords = open("coords.xyz", "w")
 step_count = 0
 for i in range(0,len(x)):
@@ -231,12 +237,4 @@ for l in range(0,n_frames):
 		nf_coords.write("%+15.15f \n" % (QM_energy[l]))
 nf_coords.close()
 
-#file = open('coords.xyz', 'r')
-#for line in file.read():
-#	d = line.split()
-#	if len(d) > 1:
-#:		if d[0] == 1:
-#			print d[0] 
-
-#print "frames:", len(x)/n_atoms
 
