@@ -75,8 +75,6 @@ with open(log_file) as input:
 				elif d[0] == "!" and d[1] == "R5" and d[4] == "Scan":
 					important_oxygen_name = d[1]
 					important_oxygen_definition = d[2]
-					#print important_oxygen_name
-					#print important_oxygen_definition
 			if d[0] == "NAtoms=":
 				n_atoms = int(d[1])
 			if d[0]=="Optimization" and d[1]=="completed.": 
@@ -121,6 +119,10 @@ def computePotentialEnergy(coords, names):
 	o_sigma = 3.090
 	cu_epsilon = 0.0427
 	o_epsilon = 0.0088629
+	De = -40.9896
+	re = 1.95968
+	a = 1
+
 	
 	n_atoms = coords.shape[0]
 	atom_sigma = np.zeros(n_atoms, dtype=float)
@@ -154,6 +156,7 @@ def computePotentialEnergy(coords, names):
 
 
 	energy = 0
+	potential = 0
 	for atom1 in range(n_atoms-1):
 
 		for atom2 in range(atom1+1, n_atoms):
@@ -166,13 +169,29 @@ def computePotentialEnergy(coords, names):
 			epsilon = (atom_epsilon[atom1] * atom_epsilon[atom2]) ** 0.5
 			LJ = 4.0 * epsilon * ((sigma / dist) ** 12.0 - (sigma / dist) ** 6.0)
 			energy += float(LJ)
+		#	Morse = De * (1-exp(-a*(dist - re)**2))
+		#	potential += Morse
 			if dist2 > dist2_cut:
 				dist = math.sqrt(dist2)
 				coul_energy = atom_charge[atom1] * atom_charge[atom2] / dist
-				energy += float(coul_energy)
+				energy += float(coul_energy)	
+	return energy 
 
-	return energy
 
+def MorsePotential(coords, names):
+	De = -40.9896
+	#De = -.00001
+	re = 1.95968
+	a = .8
+	potential = 0
+	for atom1 in range(n_atoms-1):
+		for atom2 in range(atom1+1, n_atoms):
+			dist_vec = coords[atom1,:] - coords[atom2,:]
+			dist2 = np.dot(dist_vec,dist_vec)
+			dist = math.sqrt(dist2)
+			Morse = De * (1 - math.exp(-a*(dist - re))**2)
+			potential += Morse
+	return potential
 
 x = np.asarray(x)
 y = np.asarray(y)
@@ -197,7 +216,10 @@ for frame in range(n_frames):
 	energy = computePotentialEnergy(xyz[frame,:,:],atom_name[0:n_atoms])
 	energy_list.append(energy)
 
-
+Morse_potential =[]
+for frame in range(n_frames):
+	potential = MorsePotential(xyz[frame,:,:], atom_name[0:n_atoms])
+	Morse_potential.append(potential)
 
 #zero out the relative potential energy
 first_element_in_ff_pe = energy_list[0]
@@ -214,9 +236,10 @@ for i in range(len(QM_energy)):
 plt.plot(cu_o_bond_dist[0:25], energy_list, "bo")
 plt.grid(b=True, which='major', axis='both', color='#808080', linestyle='--')
 plt.plot(cu_o_bond_dist[0:25], QM_energy, "r^")
+plt.plot(cu_o_bond_dist[0:25], Morse_potential, "gs")
 plt.ylabel('Energy (kcal/mol)')
 plt.xlabel('Copper-Oxygen Distance ($\AA$)')
-plt.legend(['LJ + C', 'QM'], fontsize='10', bbox_to_anchor=(.85, 0.905, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+plt.legend(['LJ + C', 'QM', 'Morse'], fontsize='10', bbox_to_anchor=(.85, 0.905, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 plt.xlim((0,4))
 plt.axhline(y = 0, color = "k")
 plt.title(r'Copper-6 Equatorial Water Coordination Potential Energy Scan', size='14')
