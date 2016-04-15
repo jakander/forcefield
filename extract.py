@@ -298,10 +298,15 @@ for frame in range(n_frames):
 	energy = computePotentialEnergy(xyz[frame,:,:],atom_name[0:n_atoms])
 	energy_list.append(energy)
 
-Morse_potential =[]
+Morse_potential=[]
 for frame in range(n_frames):
 	potential = MorsePotential(xyz[frame,:,:], atom_name[0:n_atoms])
 	Morse_potential.append(potential)
+
+#zero out the morse potential
+first_element_in_Morse = Morse_potential[0]
+for i in range(len(Morse_potential)):
+	Morse_potential[i] -= first_element_in_Morse
 
 #zero out the relative potential energy
 first_element_in_ff_pe = energy_list[0]
@@ -315,13 +320,13 @@ for i in range(len(QM_energy)):
 
 
 
-plt.plot(cu_o_bond_dist[0:25], energy_list, "bo")
+plt.plot(cu_o_bond_dist[0:25], energy_list[0:25], "bo")
 plt.grid(b=True, which='major', axis='both', color='#808080', linestyle='--')
-plt.plot(cu_o_bond_dist[0:25], QM_energy, "r^")
-plt.plot(cu_o_bond_dist[0:25], Morse_potential, "gs")
+plt.plot(cu_o_bond_dist[0:25], QM_energy[0:25], "r^")
+plt.plot(cu_o_bond_dist[0:23], Morse_potential[0:23], "gs")
 plt.ylabel('Energy (kcal/mol)')
 plt.xlabel('Copper-Oxygen Distance ($\AA$)')
-plt.legend(['LJ + C', 'QM', 'Morse'], fontsize='10', bbox_to_anchor=(.85, 0.905, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+plt.legend(['LJ + C', 'QM', 'Morse'], fontsize='10', bbox_to_anchor=(.85, 0.865, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 plt.xlim((0,4))
 plt.axhline(y = 0, color = "k")
 plt.title(r'Copper-2 Equatorial Water Coordination Potential Energy Scan', size='14')
