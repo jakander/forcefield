@@ -31,8 +31,8 @@ def computePotentialEnergy(coords, names):
 	cu_charge = 2.0 * conv_factor
 	#Oxygen and Hydrogen charges are the charges used in the Tip3P solvent model
 	#-.72 and .36 fit the qm scan a little better
-	o_charge = -0.84 * conv_factor
-	h_charge = 0.42 * conv_factor
+	o_charge = -0.72 * conv_factor
+	h_charge = 0.36 * conv_factor
 
 	#sigma is in units of angstroms
 	#epsilon in units of kcal/mol
@@ -94,8 +94,11 @@ def computePotentialEnergy(coords, names):
 
 def MorsePotential(coords, names):
 	#De and re were values "measured" from the qm scan
+	#2h2o
 	cu_o_De = 40.9896 / 2
-	cu_o_re = 1.95968 / 2 
+	#6h2o
+	#cu_o_De = 14.1667 / 2
+	cu_o_re = 1.9975 / 2 
 	#a parameter found from AMBER94
 	cu_o_a = 2.6368 / 2
 
@@ -108,7 +111,7 @@ def MorsePotential(coords, names):
 	cu_charge = 0.0 * conv_factor
 	#Oxygen and Hydrogen charges are the charges used in the Tip3P solvent model
 	#-.72 and .36 fit the qm scan a little better
-	o_charge = -0.84 * conv_factor
+	o_charge = -0.72 * conv_factor
 	h_charge = 0.0
 
 
@@ -169,6 +172,14 @@ def MorsePotential(coords, names):
 
 
 	potential = 0
+	
+#	for i in range(len(cu_o_bond_dist[0:25])):
+#		De = 40.9896
+#		re = 1.9975
+#		a = -2.6365
+#		Morse = (De * (1 - math.exp(a*(cu_o_bond_dist[i] - re)))**2)
+#		potential += float(Morse)
+#	return potential
 	for atom1 in range(n_atoms-1):
 		for atom2 in range(atom1+1, n_atoms):
 			dist_vec = coords[atom1,:] - coords[atom2,:]
@@ -177,7 +188,7 @@ def MorsePotential(coords, names):
 			De = (atom_De[atom1] + atom_De[atom2])
 			re = (atom_re[atom1] + atom_re[atom2])
 			a = (atom_a[atom1] + atom_a[atom2])
-			Morse = De * (1 - math.exp(-a*(dist - re)))**2 
+			Morse = (De * (1 - math.exp(-a*(dist - re)))**2)
 			potential += float(Morse)
 			#arithemtic mean for sigma
 			sigma = (atom_sigma[atom1] + atom_sigma[atom2]) / 2.0 
@@ -274,7 +285,6 @@ with open(log_file) as input:
 n_frames = len(x) / n_atoms
 n_frames = n_frames - 1
 
-
 x = np.asarray(x)
 y = np.asarray(y)
 z = np.asarray(z)
@@ -323,13 +333,13 @@ for i in range(len(QM_energy)):
 plt.plot(cu_o_bond_dist[0:25], energy_list[0:25], "bo")
 plt.grid(b=True, which='major', axis='both', color='#808080', linestyle='--')
 plt.plot(cu_o_bond_dist[0:25], QM_energy[0:25], "r^")
-plt.plot(cu_o_bond_dist[0:23], Morse_potential[0:23], "gs")
+plt.plot(cu_o_bond_dist[0:25], Morse_potential[0:25], "gs")
 plt.ylabel('Energy (kcal/mol)')
 plt.xlabel('Copper-Oxygen Distance ($\AA$)')
 plt.legend(['LJ + C', 'QM', 'Morse'], fontsize='10', bbox_to_anchor=(.85, 0.865, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 plt.xlim((0,4))
 plt.axhline(y = 0, color = "k")
-plt.title(r'Copper-2 Equatorial Water Coordination Potential Energy Scan', size='14')
+plt.title(r'Copper-6 Equatorial Water Coordination Potential Energy Scan', size='14')
 plt.show()
 
 
