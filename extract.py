@@ -75,6 +75,10 @@ def computePotentialEnergy(coords, names):
 
 	energy = 0
 	potential = 0
+	for i in cu_o_bond_dist[1:26]:
+		l = A/(i**9) + B/(i**6) - C 
+		energy += float(l)
+
 	for atom1 in range(n_atoms-1):
 
 		for atom2 in range(atom1+1, n_atoms):
@@ -85,8 +89,8 @@ def computePotentialEnergy(coords, names):
 			sigma = (atom_sigma[atom1] + atom_sigma[atom2]) / 2.0 
 			#geometric mean for epsilon 
 			epsilon = (atom_epsilon[atom1] * atom_epsilon[atom2]) ** 0.5
-			LJ = 4.0 * epsilon * ((sigma / dist) ** 9.0 - (sigma / dist) ** 6.0)
-			energy += float(LJ)
+			#LJ = 4.0 * epsilon * ((sigma / dist) ** 12.0 - (sigma / dist) ** 6.0)
+			#energy += float(LJ)
 			if dist2 > dist2_cut:
 				dist = math.sqrt(dist2)
 				coul_energy = atom_charge[atom1] * atom_charge[atom2] / dist
@@ -200,7 +204,7 @@ def MorsePotentialOFAllOxygens(coords, names):
 #			sigma = (atom_sigma[atom1] + atom_sigma[atom2]) / 2.0 
 #			#geometric mean for epsilon 
 #			epsilon = (atom_epsilon[atom1] * atom_epsilon[atom2]) ** 0.5
-#			LJ = 4.0 * epsilon * ((sigma / dist) ** 9.0 - (sigma / dist) ** 6.0)
+#			LJ = 4.0 * epsilon * ((sigma / dist) ** 12.0 - (sigma / dist) ** 6.0)
 #			potential += float(LJ)
 #	                if dist2 > dist2_cut:
 #	       	 	       dist = math.sqrt(dist2)
@@ -288,7 +292,7 @@ with open(log_file) as input:
 						count = 0 
 						count2 = 0
 
-MorseScandWaterOnly = []
+MorseScannedWaterOnly = []
 for i in range(len(cu_o_bond_dist)):
 	#1water 
 	De = 17.4015979
@@ -303,7 +307,38 @@ for i in range(len(cu_o_bond_dist)):
 	#re = 1.9975
 	a = 3.200655
 	Morse = (De * (1 - math.exp(-a*(cu_o_bond_dist[i] - re)))**2 - De)
-	MorseScandWaterOnly.append(float(Morse))
+	MorseScannedWaterOnly.append(float(Morse))
+
+
+#compute the sigma and epsilon values for the Lennard Jones through a least squares approach
+r1 = []
+r2 = []
+r3 = []
+for i in cu_o_bond_dist[1:26]:
+	l = i ** (-9)
+	k = -i ** (-6)
+	r1.append(l)
+	r2.append(k)
+	r3.append(1)
+#r_all = [r1, r2]
+r_all = [r1, r2, r3]
+r_all = np.asmatrix(r_all)
+QM_energy = np.asarray(QM_energy)
+qmPEinKCALperMOL = QM_energy *627.503
+A, B, C = np.linalg.lstsq(r_all.T, QM_energy)[0]
+print A, B, C
+#A, B = np.linalg.lstsq(r_all.T, qmPEinKCALperMOL)[0]
+sigma = (A/B)**(-3)
+epsilon = (B**2) / (4*A)
+Fit_LJ = []
+for i in cu_o_bond_dist[1:26]:
+	l = A/(i**9) + B/(i**6) + C 
+	Fit_LJ.append(l)
+element1inFitLJ = Fit_LJ[0]
+for i in range(len(Fit_LJ)):
+	Fit_LJ[i] -= element1inFitLJ
+
+
 
 n_frames = len(x) / n_atoms
 n_frames = n_frames - 1
@@ -335,24 +370,18 @@ for frame in range(n_frames):
 	potential = MorsePotentialOFAllOxygens(xyz[frame,:,:], atom_name[0:n_atoms])
 	M_all_oxygens.append(potential)
 
+
+
 M_LJ_C = []
 for i in energy_list:
-	for j in MorseScandWaterOnly:
+	for j in MorseScannedWaterOnly:
 		k = i + j
 		M_LJ_C.append(k)
-#compute the sigma and epsilon values for the Lennard Jones through a least squares approach
-r1 = []
-r2 = []
-for i in cu_o_bond_dist:
-	l = i ** (-12)
-	k = i ** (-6)
-	r1.append(l)
-	r2.append(k)
-r_all = [r1, r2, 1]
-A, B, C = np.linalg.lstsq(r_all, QM_energy)[1]
-print A, B, C
 
-#zero out the morsescandwater + LJ+C
+
+
+
+#zero out the morsescannedwater + LJ+C
 first_element_in_M_LJ_C = M_LJ_C[0]
 for i in range(len(M_LJ_C)):
 	M_LJ_C[i] -= first_element_in_M_LJ_C
@@ -372,12 +401,17 @@ first_element_in_qm_energy = QM_energy[0]
 for i in range(len(QM_energy)):
 	QM_energy[i] -= first_element_in_qm_energy
 
+
+
+
+
 plt.grid(b=True, which='major', axis='both', color='#808080', linestyle='--')
-#plt.plot(cu_o_bond_dist[0:25], energy_list[0:25], "bo")
-plt.plot(cu_o_bond_dist[0:10], QM_energy[0:10], "r^")
-#plt.plot(cu_o_bond_dist[0:25], M_all_oxygens[0:25], "gs")
-#plt.plot(cu_o_bond_dist[0:25], M_PE[0:25], "ko")
-#plt.plot(cu_o_bond_dist[0:25], M_LJ_C[0:25], "ko")
+#plt.plot(cu_o_bond_dist[1:26], energy_list[0:25], "bo")
+plt.plot(cu_o_bond_dist[1:26], QM_energy[0:25], "r^")
+plt.plot(cu_o_bond_dist[1:26], Fit_LJ[0:25], "bo")
+#plt.plot(cu_o_bond_dist[1:26], M_all_oxygens[0:25], "gs")
+#plt.plot(cu_o_bond_dist[1:26], M_PE[0:25], "ko")
+#plt.plot(cu_o_bond_dist[1:26], M_LJ_C[0:25], "ko")
 plt.ylabel('Energy (kcal/mol)')
 plt.xlabel('Copper-Oxygen Distance ($\AA$)')
 #plt.legend(['LJ + C', 'QM', 'Morse', 'M_PE'], fontsize='10', bbox_to_anchor=(.85, 0.865, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
