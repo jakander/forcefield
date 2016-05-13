@@ -75,10 +75,6 @@ def computePotentialEnergy(coords, names):
 
 	energy = 0
 	potential = 0
-	for i in cu_o_bond_dist[1:26]:
-		l = A/(i**9) + B/(i**6) - C 
-		energy += float(l)
-
 	for atom1 in range(n_atoms-1):
 
 		for atom2 in range(atom1+1, n_atoms):
@@ -89,8 +85,8 @@ def computePotentialEnergy(coords, names):
 			sigma = (atom_sigma[atom1] + atom_sigma[atom2]) / 2.0 
 			#geometric mean for epsilon 
 			epsilon = (atom_epsilon[atom1] * atom_epsilon[atom2]) ** 0.5
-			#LJ = 4.0 * epsilon * ((sigma / dist) ** 12.0 - (sigma / dist) ** 6.0)
-			#energy += float(LJ)
+			LJ = 4.0 * epsilon * ((sigma / dist) ** 12.0 - (sigma / dist) ** 6.0)
+			energy += float(LJ)
 			if dist2 > dist2_cut:
 				dist = math.sqrt(dist2)
 				coul_energy = atom_charge[atom1] * atom_charge[atom2] / dist
@@ -311,41 +307,55 @@ for i in range(len(cu_o_bond_dist)):
 
 
 #compute the sigma and epsilon values for the Lennard Jones through a least squares approach
-r1 = []
-r2 = []
-r3 = []
-for i in cu_o_bond_dist[1:26]:
-	l = i ** (-9)
-	k = -i ** (-6)
-	r1.append(l)
-	r2.append(k)
-	r3.append(1)
-#r_all = [r1, r2]
-r_all = [r1, r2, r3]
-r_all = np.asmatrix(r_all)
-QM_energy = np.asarray(QM_energy)
-qmPEinKCALperMOL = QM_energy *627.503
-A, B, C = np.linalg.lstsq(r_all.T, QM_energy)[0]
-print A, B, C
-#A, B = np.linalg.lstsq(r_all.T, qmPEinKCALperMOL)[0]
-sigma = (A/B)**(-3)
-epsilon = (B**2) / (4*A)
-Fit_LJ = []
-for i in cu_o_bond_dist[1:26]:
-	l = A/(i**9) + B/(i**6) + C 
-	Fit_LJ.append(l)
-element1inFitLJ = Fit_LJ[0]
-for i in range(len(Fit_LJ)):
-	Fit_LJ[i] -= element1inFitLJ
-
-
-
+repulsive_term = [7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+colors_repulsive_term = ['bo','ro','ko','go','mo','bs','rs','ks','gs','ms','b^','k^','g^','m^']
+#repulsive_term = [17,18,19,20]
+#colors_repulsive_term = ['b^','k^','g^','m^']
+#repulsive_term = [15,16,17,18]
+#colors_repulsive_term = ['gs','ms','b^','k^']
+#repulsive_term = [13,14,15,16]
+#colors_repulsive_term = ['rs','ks','gs','ms']
+#repulsive_term = [10,11,12,13,14]
+#colors_repulsive_term = ['go','mo','bs','rs','ks']
+#repulsive_term = [9,10,11,12]
+#colors_repulsive_term = ['ko','go','mo','bs']
+#repulsive_term = [7,8,9,10]
+#colors_repulsive_term = ['bo','ro','ko','go']
+for m in range(len(repulsive_term)):
+	r1 = []
+	r2 = []
+	r3 = []
+	for i in cu_o_bond_dist[1:26]:
+		l = i ** (-repulsive_term[m])
+		k = -i ** (-6)
+		r1.append(l)
+		r2.append(k)
+		r3.append(1)
+	r_all = [r1, r2, r3]
+	r_all = np.asmatrix(r_all)
+	QM_energy = np.asarray(QM_energy)
+	A, B, C = np.linalg.lstsq(r_all.T, QM_energy)[0]
+	print A, B, C
+	sigma = (A/B)**(-3)
+	epsilon = (B**2) / (4*A)
+	Fit_LJ = []
+	for i in cu_o_bond_dist[1:26]:
+		l = A/(i**repulsive_term[m]) + B/(i**6)  
+		Fit_LJ.append(l)
+	element1inFitLJ = Fit_LJ[0]
+	for i in range(len(Fit_LJ)):
+		Fit_LJ[i] -= element1inFitLJ
+	plt.plot(cu_o_bond_dist[1:26], Fit_LJ[0:25], colors_repulsive_term[m])
+	
+	
 n_frames = len(x) / n_atoms
 n_frames = n_frames - 1
 
 x = np.asarray(x)
 y = np.asarray(y)
 z = np.asarray(z)
+	
+	
 
 #declare coordinate matrix to contain all positions for every step
 xyz = np.empty((n_frames,n_atoms,3),dtype=float)
@@ -408,17 +418,25 @@ for i in range(len(QM_energy)):
 plt.grid(b=True, which='major', axis='both', color='#808080', linestyle='--')
 #plt.plot(cu_o_bond_dist[1:26], energy_list[0:25], "bo")
 plt.plot(cu_o_bond_dist[1:26], QM_energy[0:25], "r^")
-plt.plot(cu_o_bond_dist[1:26], Fit_LJ[0:25], "bo")
+#plt.plot(cu_o_bond_dist[1:26], Fit_LJ[0:25], "bo")
 #plt.plot(cu_o_bond_dist[1:26], M_all_oxygens[0:25], "gs")
 #plt.plot(cu_o_bond_dist[1:26], M_PE[0:25], "ko")
 #plt.plot(cu_o_bond_dist[1:26], M_LJ_C[0:25], "ko")
 plt.ylabel('Energy (kcal/mol)')
 plt.xlabel('Copper-Oxygen Distance ($\AA$)')
 #plt.legend(['LJ + C', 'QM', 'Morse', 'M_PE'], fontsize='10', bbox_to_anchor=(.85, 0.865, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
-plt.legend(['QM', 'M+LJ(9-6)+C'], fontsize='10', bbox_to_anchor=(.75, .9, 0.25, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+#plt.legend(['LJ9-6','LJ10-6','LJ11-6','LJ12-6','QM'], fontsize='10', bbox_to_anchor=(.83, .78, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+#plt.legend(['LJ7-6','LJ8-6','LJ9-6','LJ10-6','QM'], fontsize='10', bbox_to_anchor=(.83, .373, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+#plt.legend(['LJ10-6','LJ11-6','LJ12-6','LJ13-6','LJ14-6','QM'], fontsize='10', bbox_to_anchor=(.83, .75, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+#plt.legend(['LJ13-6','LJ14-6','LJ15-6','LJ16-6','QM'], fontsize='10', bbox_to_anchor=(.83, .78, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+#plt.legend(['LJ15-6','LJ16-6','LJ17-6','LJ18-6','QM'], fontsize='10', bbox_to_anchor=(.83,.78, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+#plt.legend(['LJ7-6','LJ8-6','LJ9-6','LJ10-6','LJ11-6','LJ12-6','LJ13-6','LJ14-6','LJ15-6','LJ16-6','LJ17-6','LJ18-6','LJ19-6','LJ20-6','QM'], fontsize='10', bbox_to_anchor=(.83, .373, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+plt.legend(['LJ17-6','LJ18-6','LJ19-6','LJ20-6','QM'], fontsize='10', bbox_to_anchor=(.83, .78, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+#plt.legend(['QM','LJ(16-6)'], fontsize='10', bbox_to_anchor=(.75, .9, 0.25, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+#plt.legend(['QM','LJ(16-6)'], fontsize='10', bbox_to_anchor=(.75, .9, 0.25, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 plt.xlim((0,4))
 plt.axhline(y = 0, color = "k")
-plt.title(r'Copper and 6 Water Coordination Potential Energy Scan', size='14')
+plt.title(r'Copper and 1 Water Coordination Potential Energy Scan', size='14')
 plt.show()
 
 #print the QM energy and the scanned bond distances to new file to be read to determine the sigma and epsilon valuesfor Lennard Jones potentials 
