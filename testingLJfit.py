@@ -38,7 +38,8 @@ for m in range(len(repulsive_term)):
 	print "sigma =", sigma1, ",  ", "epsilon =", epsilon1
 	Fit_LJ = []
 	for r in bond_dist:
-		l = 4*epsilon1*((sigma1/r)**12 - (sigma1/r)**6) 
+		l = A*r**(-12) - B*r**(-6) 
+		#l = 4*epsilon1*((sigma1/r)**12 - (sigma1/r)**6) 
 		Fit_LJ.append(l)
 	#element1inFitLJ = Fit_LJ[0]
 	#for i in range(len(Fit_LJ)):
@@ -47,7 +48,7 @@ for m in range(len(repulsive_term)):
 
 
 plt.grid(b=True, which='major', axis='both', color='#808080', linestyle='--')
-plt.plot(bond_dist[1:26], LJ_energy[0:25], "r^")
+plt.plot(bond_dist, LJ_energy, "r^")
 plt.ylabel('Energy (kcal/mol)')
 plt.xlabel('Copper-Oxygen Distance ($\AA$)')
 plt.legend(['LJ_fitted', 'LJ'], fontsize='10', bbox_to_anchor=(.84, 0.905, 0.16, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
