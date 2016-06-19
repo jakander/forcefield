@@ -237,6 +237,9 @@ cu_o_bond_dist = []
 coords = {}
 #sys.argv[1] is the script extract.py
 log_file = sys.argv[1]
+name = ' '.join(' '.join(log_file.split("_")).split('.')).split() 
+print name
+print log_file
 with open(log_file) as input:
 	for line in input: 
 		d=line.split()
@@ -321,41 +324,41 @@ colors_repulsive_term = ['go','mo','bs','rs','ks']
 #colors_repulsive_term = ['ko','go','mo','bs']
 #repulsive_term = [7,8,9,10]
 #colors_repulsive_term = ['bo','ro','ko','go']
-for m in range(len(repulsive_term)):
-	r1 = []
-	r2 = []
-	r3 = []
-	for i in cu_o_bond_dist[1:26]:
-		l = i ** (-repulsive_term[m])
-		k = -i ** (-6)
-		r1.append(l)
-		r2.append(k)
-		r3.append(1)
-	r_all = [r1, r2, r3]
-	r_all = np.asmatrix(r_all)
-	QM_energy = np.asarray(QM_energy)
-	A, B, C = np.linalg.lstsq(r_all.T, QM_energy)[0]
-	residuals = np.linalg.lstsq(r_all.T,QM_energy)[1]
-	#LJ(9-6) A,B,C values from 1 water system
-	#A = 5038.05204605 
-	#B = 1326.20662767 
-	#C = -1076790.05551
-	#LJ(20-6) A,B,C values from 1 water system
-	#A = 57801.8233555 
-	#B = 53.9734373032 
-	#C = -1076793.99734
-	print A, B, C
-	print (m+7), "= ", residuals
-	#sigma = (A/B)**(-3)
-	#epsilon = (B**2) / (4*A)
-	Fit_LJ = []
-	for r in cu_o_bond_dist[1:26]:
-		l = A/(r**repulsive_term[m]) + B/(r**6) - C  
-		Fit_LJ.append(l)
-	element1inFitLJ = Fit_LJ[0]
-	for i in range(len(Fit_LJ)):
-		Fit_LJ[i] -= element1inFitLJ
-	plt.plot(cu_o_bond_dist[1:26], Fit_LJ[0:25], colors_repulsive_term[m])
+##for m in range(len(repulsive_term)):
+#	r1 = []
+#	r2 = []
+#	r3 = []
+#	for i in cu_o_bond_dist[1:26]:
+#		l = i ** (-repulsive_term[m])
+#		k = -i ** (-6)
+#		r1.append(l)
+#		r2.append(k)
+#		r3.append(1)
+#	r_all = [r1, r2, r3]
+#	r_all = np.asmatrix(r_all)
+#	QM_energy = np.asarray(QM_energy)
+#	A, B, C = np.linalg.lstsq(r_all.T, QM_energy)[0]
+#	residuals = np.linalg.lstsq(r_all.T,QM_energy)[1]
+#	#LJ(9-6) A,B,C values from 1 water system
+#	#A = 5038.05204605 
+#	#B = 1326.20662767 
+#	#C = -1076790.05551
+#	#LJ(20-6) A,B,C values from 1 water system
+#	#A = 57801.8233555 
+#	#B = 53.9734373032 
+#	#C = -1076793.99734
+#	print A, B, C
+#	print (m+7), "= ", residuals
+#	#sigma = (A/B)**(-3)
+#	#epsilon = (B**2) / (4*A)
+#	Fit_LJ = []
+#	for r in cu_o_bond_dist[1:26]:
+#		l = A/(r**repulsive_term[m]) + B/(r**6) - C  
+#		Fit_LJ.append(l)
+#	element1inFitLJ = Fit_LJ[0]
+#	for i in range(len(Fit_LJ)):
+#		Fit_LJ[i] -= element1inFitLJ
+#	plt.plot(cu_o_bond_dist[1:26], Fit_LJ[0:25], colors_repulsive_term[m])
 	
 	
 n_frames = len(x) / n_atoms
@@ -426,18 +429,24 @@ for i in range(len(QM_energy)):
 
 
 plt.grid(b=True, which='major', axis='both', color='#808080', linestyle='--')
-#plt.plot(cu_o_bond_dist[1:26], energy_list[0:25], "bo")
-plt.plot(cu_o_bond_dist[1:26], QM_energy[0:25], "r^")
+plt.plot(cu_o_bond_dist[1:26], energy_list[0:25], "bo")
+plt.plot(cu_o_bond_dist[1:25], QM_energy[0:24], "r^")
+#plt.plot(cu_o_bond_dist[26:50], QM_energy[25:49], "g^")
+#plt.plot(cu_o_bond_dist[51:75], QM_energy[50:74], "b^")
+#plt.plot(cu_o_bond_dist[76:100], QM_energy[75:99], "k^")
+#plt.plot(cu_o_bond_dist[101:125], QM_energy[100:124], "rs")
+#plt.plot(cu_o_bond_dist[126:148], QM_energy[125:147], "gs")
 #plt.plot(cu_o_bond_dist[1:26], Fit_LJ[0:25], "bo")
 #plt.plot(cu_o_bond_dist[1:26], M_all_oxygens[0:25], "gs")
 #plt.plot(cu_o_bond_dist[1:26], M_PE[0:25], "ko")
 #plt.plot(cu_o_bond_dist[1:26], M_LJ_C[0:25], "ko")
 plt.ylabel('Energy (kcal/mol)')
 plt.xlabel('Copper-Oxygen Distance ($\AA$)')
-#plt.legend(['LJ + C', 'QM', 'Morse', 'M_PE'], fontsize='10', bbox_to_anchor=(.85, 0.865, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+plt.legend(['LJ + C', 'QM', 'Morse', 'M_PE'], fontsize='10', bbox_to_anchor=(.85, 0.865, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+#plt.legend(['125', '120', '115', '110', '105', '100'], fontsize='10', bbox_to_anchor=(.85, 0.75, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 #plt.legend(['LJ9-6','LJ10-6','LJ11-6','LJ12-6','QM'], fontsize='10', bbox_to_anchor=(.83, .78, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 #plt.legend(['LJ7-6','LJ8-6','LJ9-6','LJ10-6','QM'], fontsize='10', bbox_to_anchor=(.83, .373, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
-plt.legend(['LJ10-6','LJ11-6','LJ12-6','LJ13-6','LJ14-6','QM'], fontsize='10', bbox_to_anchor=(.83, .75, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+#plt.legend(['LJ10-6','LJ11-6','LJ12-6','LJ13-6','LJ14-6','QM'], fontsize='10', bbox_to_anchor=(.83, .75, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 #plt.legend(['LJ13-6','LJ14-6','LJ15-6','LJ16-6','QM'], fontsize='10', bbox_to_anchor=(.83, .78, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 #plt.legend(['LJ15-6','LJ16-6','LJ17-6','LJ18-6','QM'], fontsize='10', bbox_to_anchor=(.83,.78, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 #plt.legend(['LJ7-6','LJ8-6','LJ9-6','LJ10-6','LJ11-6','LJ12-6','LJ13-6','LJ14-6','LJ15-6','LJ16-6','LJ17-6','LJ18-6','LJ19-6','LJ20-6','QM'], fontsize='10', bbox_to_anchor=(.83, .373, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
@@ -446,8 +455,10 @@ plt.legend(['LJ10-6','LJ11-6','LJ12-6','LJ13-6','LJ14-6','QM'], fontsize='10', b
 #plt.legend(['QM','LJ(16-6)'], fontsize='10', bbox_to_anchor=(.75, .9, 0.25, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 plt.xlim((0,4))
 plt.axhline(y = 0, color = "k")
-plt.title(r'Copper and 6 Water Coordination Potential Energy Scan', size='14')
-plt.suptitle(r'With Parameters from 1 Water System', size='14')
+#plt.title(r'2D Coordination and Angle Potential Energy Scan', size='14')
+#plt.suptitle(r'Copper and 2 Water', size='14')
+#plt.suptitle(r'With Parameters from 1 Water System', size='14')
+plt.title(r'Potential Energy Scan 1-Water System', size='14')
 plt.show()
 
 #print the QM energy and the scanned bond distances to new file to be read to determine the sigma and epsilon valuesfor Lennard Jones potentials 
