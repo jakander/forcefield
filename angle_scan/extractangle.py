@@ -3,13 +3,13 @@
 ###############################################################################################################
 
 
+#PREAMBLE:	
 
 import sys
 import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-	
 
 
 #QM_energy is the energy from qm computed for a given frame/dist  
@@ -130,6 +130,10 @@ angle_scanned18 = name_split18[4]
 log_file19 = sys.argv[19]
 name_split19 = ' '.join(' '.join(log_file19.split('_')).split('.')).split()
 angle_scanned19 = name_split19[4]
+
+#------------------------------------------------------------------------------------------
+#MAIN PROGRAM:
+
 
 with open(log_file1) as input:
 	switch = 0
@@ -1086,6 +1090,7 @@ with open(log_file19) as input:
 
 
 
+
 #zero out the relative qm energies
 first_element_in_qm_energy1 = QM_energy1[0]
 for i in range(len(QM_energy1)):
@@ -1165,6 +1170,8 @@ for i in range(len(QM_energy19)):
 
 
 
+#-------------------------------------------------------------------------------
+#OTHER UTILITIES/PLOTTING:
 
 plt.grid(b=True, which='major', axis='both', color='#808080', linestyle='--')
 plt.plot(cu_o_bond_dist1[1:15], QM_energy1[0:14], "g^")
