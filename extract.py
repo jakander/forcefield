@@ -312,53 +312,53 @@ for i in range(len(cu_o_bond_dist)):
 #compute the sigma and epsilon values for the Lennard Jones through a least squares approach
 #repulsive_term = [7,8,9,10,11,12,13,14,15,16,17,18,19,20]
 #colors_repulsive_term = ['bo','ro','ko','go','mo','bs','rs','ks','gs','ms','b^','k^','g^','m^']
-#repulsive_term = [9]
-#colors_repulsive_term = ['ms']
+repulsive_term = [9, 12]
+colors_repulsive_term = ['ms','b^']
 #repulsive_term = [15,16,17,18]
 #colors_repulsive_term = ['gs','ms','b^','k^']
 #repulsive_term = [13,14,15,16]
 #colors_repulsive_term = ['rs','ks','gs','ms']
-repulsive_term = [10,11,12,13,14]
-colors_repulsive_term = ['go','mo','bs','rs','ks']
+#repulsive_term = [10,11,12,13,14]
+#colors_repulsive_term = ['go','mo','bs','rs','ks']
 #repulsive_term = [9,10,11,12]
 #colors_repulsive_term = ['ko','go','mo','bs']
 #repulsive_term = [7,8,9,10]
 #colors_repulsive_term = ['bo','ro','ko','go']
-##for m in range(len(repulsive_term)):
-#	r1 = []
-#	r2 = []
-#	r3 = []
-#	for i in cu_o_bond_dist[1:26]:
-#		l = i ** (-repulsive_term[m])
-#		k = -i ** (-6)
-#		r1.append(l)
-#		r2.append(k)
-#		r3.append(1)
-#	r_all = [r1, r2, r3]
-#	r_all = np.asmatrix(r_all)
-#	QM_energy = np.asarray(QM_energy)
-#	A, B, C = np.linalg.lstsq(r_all.T, QM_energy)[0]
-#	residuals = np.linalg.lstsq(r_all.T,QM_energy)[1]
-#	#LJ(9-6) A,B,C values from 1 water system
-#	#A = 5038.05204605 
-#	#B = 1326.20662767 
-#	#C = -1076790.05551
-#	#LJ(20-6) A,B,C values from 1 water system
-#	#A = 57801.8233555 
-#	#B = 53.9734373032 
-#	#C = -1076793.99734
-#	print A, B, C
-#	print (m+7), "= ", residuals
-#	#sigma = (A/B)**(-3)
-#	#epsilon = (B**2) / (4*A)
-#	Fit_LJ = []
-#	for r in cu_o_bond_dist[1:26]:
-#		l = A/(r**repulsive_term[m]) + B/(r**6) - C  
-#		Fit_LJ.append(l)
-#	element1inFitLJ = Fit_LJ[0]
-#	for i in range(len(Fit_LJ)):
-#		Fit_LJ[i] -= element1inFitLJ
-#	plt.plot(cu_o_bond_dist[1:26], Fit_LJ[0:25], colors_repulsive_term[m])
+for m in range(len(repulsive_term)):
+	r1 = []
+	r2 = []
+	r3 = []
+	for i in cu_o_bond_dist[1:26]:
+		l = i ** (-repulsive_term[m])
+		k = -i ** (-6)
+		r1.append(l)
+		r2.append(k)
+		r3.append(1)
+	r_all = [r1, r2, r3]
+	r_all = np.asmatrix(r_all)
+	QM_energy = np.asarray(QM_energy)
+	A, B , C= np.linalg.lstsq(r_all.T, QM_energy)[0]
+	#residuals = np.linalg.lstsq(r_all.T,QM_energy)[1]
+	#LJ(9-6) A,B,C values from 1 water system
+	#A = 5038.05204605 
+	#B = 1326.20662767 
+	#C = -1076790.05551
+	#LJ(20-6) A,B,C values from 1 water system
+	#A = 57801.8233555 
+	#B = 53.9734373032 
+	#C = -1076793.99734
+	#print A, B, C
+	#print (m+7), "= ", residuals
+	#sigma = (A/B)**(-3)
+	#epsilon = (B**2) / (4*A)
+	Fit_LJ = []
+	for r in cu_o_bond_dist[1:26]:
+		l = A/(r**repulsive_term[m]) + B/(r**6) - C
+		Fit_LJ.append(l)
+	element1inFitLJ = Fit_LJ[0]
+	for i in range(len(Fit_LJ)):
+		Fit_LJ[i] -= element1inFitLJ
+	plt.plot(cu_o_bond_dist[1:26], Fit_LJ[0:25], colors_repulsive_term[m])
 	
 	
 n_frames = len(x) / n_atoms
@@ -429,7 +429,7 @@ for i in range(len(QM_energy)):
 
 
 plt.grid(b=True, which='major', axis='both', color='#808080', linestyle='--')
-plt.plot(cu_o_bond_dist[1:26], energy_list[0:25], "bo")
+#plt.plot(cu_o_bond_dist[1:26], energy_list[0:25], "bo")
 plt.plot(cu_o_bond_dist[1:25], QM_energy[0:24], "r^")
 #plt.plot(cu_o_bond_dist[26:50], QM_energy[25:49], "g^")
 #plt.plot(cu_o_bond_dist[51:75], QM_energy[50:74], "b^")
@@ -437,20 +437,15 @@ plt.plot(cu_o_bond_dist[1:25], QM_energy[0:24], "r^")
 #plt.plot(cu_o_bond_dist[101:125], QM_energy[100:124], "rs")
 #plt.plot(cu_o_bond_dist[126:148], QM_energy[125:147], "gs")
 #plt.plot(cu_o_bond_dist[1:26], Fit_LJ[0:25], "bo")
-#plt.plot(cu_o_bond_dist[1:26], M_all_oxygens[0:25], "gs")
+plt.plot(cu_o_bond_dist[1:26], M_all_oxygens[0:25], "gs")
 #plt.plot(cu_o_bond_dist[1:26], M_PE[0:25], "ko")
 #plt.plot(cu_o_bond_dist[1:26], M_LJ_C[0:25], "ko")
 plt.ylabel('Energy (kcal/mol)')
 plt.xlabel('Copper-Oxygen Distance ($\AA$)')
-plt.legend(['LJ + C', 'QM', 'Morse', 'M_PE'], fontsize='10', bbox_to_anchor=(.85, 0.865, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
-#plt.legend(['125', '120', '115', '110', '105', '100'], fontsize='10', bbox_to_anchor=(.85, 0.75, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
-#plt.legend(['LJ9-6','LJ10-6','LJ11-6','LJ12-6','QM'], fontsize='10', bbox_to_anchor=(.83, .78, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
-#plt.legend(['LJ7-6','LJ8-6','LJ9-6','LJ10-6','QM'], fontsize='10', bbox_to_anchor=(.83, .373, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
-#plt.legend(['LJ10-6','LJ11-6','LJ12-6','LJ13-6','LJ14-6','QM'], fontsize='10', bbox_to_anchor=(.83, .75, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
-#plt.legend(['LJ13-6','LJ14-6','LJ15-6','LJ16-6','QM'], fontsize='10', bbox_to_anchor=(.83, .78, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+#plt.legend(['LJ + C', 'QM', 'Morse', 'M_PE'], fontsize='10', bbox_to_anchor=(.85, 0.865, 0.15, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 #plt.legend(['LJ15-6','LJ16-6','LJ17-6','LJ18-6','QM'], fontsize='10', bbox_to_anchor=(.83,.78, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 #plt.legend(['LJ7-6','LJ8-6','LJ9-6','LJ10-6','LJ11-6','LJ12-6','LJ13-6','LJ14-6','LJ15-6','LJ16-6','LJ17-6','LJ18-6','LJ19-6','LJ20-6','QM'], fontsize='10', bbox_to_anchor=(.83, .373, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
-#plt.legend(['LJ9-6','QM','Morse'], fontsize='10', bbox_to_anchor=(.83, .78, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
+plt.legend(['LJ9-6', 'LJ12-6','QM','Morse'], fontsize='10', bbox_to_anchor=(.83, .78, 0.17, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 #plt.legend(['QM','LJ(16-6)'], fontsize='10', bbox_to_anchor=(.75, .9, 0.25, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 #plt.legend(['QM','LJ(16-6)'], fontsize='10', bbox_to_anchor=(.75, .9, 0.25, 0.0), loc=3, ncol=1, mode='expand', borderaxespad=0., numpoints = 1)
 plt.xlim((0,4))
